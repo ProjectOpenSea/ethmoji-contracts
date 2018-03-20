@@ -1,0 +1,35 @@
+{
+  "name": "ethmoji-contracts",
+  "version": "1.0.4",
+  "description": "Contracts for Ethmoji composable art blockchain game",
+  "main": "index.js",
+  "scripts": {
+    "truffle": "truffle",
+    "test": "truffle test",
+    "deploy:rinkeby": "rm -rf build/ && truffle migrate --network rinkeby",
+    "build": "rm -rf build/ && truffle compile"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ProjectOpenSea/opensea-contracts.git"
+  },
+  "author": "Open Sea",
+  "contributors": [
+    "Elena Nadolinski <elena@vt.edu> (https://github.com/leanthebean)",
+    "Devin Finzer <devin.finzer@joinozone.com> (https://github.com/dfinzer)",
+    "Feridun Mert Celebi <mertcelebi93@gmail.com> (https://github.com/mertcelebi)"
+  ],
+  "dependencies": {
+    "chai-as-promised": "^7.1.1",
+    "chai-bignumber": "^2.0.2",
+    "debug": "3.0.1",
+    "eth-gas-reporter": "^0.1.1",
+    "keccak": "^1.4.0",
+    "sha256": "^0.2.0",
+    "truffle": "4.0.1",
+    "truffle-hdwallet-provider": "^0.0.3",
+    "web3": "0.20.1",
+    "zeppelin-solidity": "1.6.0"
+  },
+  "homepage": "https://ethmoji.io"
+}
