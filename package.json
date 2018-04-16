@@ -24,6 +24,7 @@
     "chai-bignumber": "^2.0.2",
     "debug": "3.0.1",
     "eth-gas-reporter": "^0.1.1",
+    "ethereumjs-abi": "^0.6.5",
     "keccak": "^1.4.0",
     "sha256": "^0.2.0",
     "truffle": "4.0.1",

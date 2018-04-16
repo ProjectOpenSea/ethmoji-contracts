@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.21;
 
 import "zeppelin-solidity/contracts/token/ERC721/ERC721Token.sol";
 import "zeppelin-solidity/contracts/math/SafeMath.sol";
@@ -13,15 +13,20 @@ import "zeppelin-solidity/contracts/lifecycle/Pausable.sol";
  */
 
 contract Composable is ERC721Token, Ownable, PullPayment, Pausable {
-   
     // Max number of layers for a composition token
     uint public constant MAX_LAYERS = 100;
-
+    
     // The minimum composition fee for an ethmoji
-    uint256 public minCompositionFee = 0.001 ether;
+    uint256 public minCompositionFee;
 
     // Mapping from token ID to composition price
     mapping (uint256 => uint256) public tokenIdToCompositionPrice;
+
+    // Mapping from token ID to composition price increase 
+    mapping (uint256 => uint256) public tokenIdToCompositionPriceChangeRate;
+
+    // Mapping from token ID to owner ability of changing composition price increase 
+    mapping (uint256 => bool) public tokenIdToCompPricePermission;
     
     // Mapping from token ID to layers representing it
     mapping (uint256 => uint256[]) public tokenIdToLayers;
@@ -50,16 +55,21 @@ contract Composable is ERC721Token, Ownable, PullPayment, Pausable {
     * @dev Mints a base token to an address with a given composition price
     * @param _to address of the future owner of the token
     * @param _compositionPrice uint256 composition price for the new token
+    * @param _changeRate uint256 the rate at which comp price increases after every use
+    * @param _changeableCompPrice bool whether or not the comp price can be changed
+    * @param _imageHash uint256 hash of the resulting image
     */
-    function mintTo(address _to, uint256 _compositionPrice, uint256 _imageHash) public onlyOwner {
+    function mintTo(address _to, uint256 _compositionPrice, uint256 _changeRate,  bool _changeableCompPrice, uint256 _imageHash) public onlyOwner {
         uint256 newTokenIndex = _getNextTokenId();
         _mint(_to, newTokenIndex);
         tokenIdToLayers[newTokenIndex] = [newTokenIndex];
         require(_isUnique(tokenIdToLayers[newTokenIndex], _imageHash));
         compositions[keccak256([newTokenIndex])] = true;
         imageHashes[_imageHash] = newTokenIndex;      
-        BaseTokenCreated(newTokenIndex);
+        emit BaseTokenCreated(newTokenIndex);
         _setCompositionPrice(newTokenIndex, _compositionPrice);
+        _setCompositionPriceChangeRate(newTokenIndex, _changeRate);
+        _setCompositionPriceChangePermission(newTokenIndex, _changeableCompPrice);
     }
 
     /**
@@ -67,6 +77,7 @@ contract Composable is ERC721Token, Ownable, PullPayment, Pausable {
     * @param _tokenIds uint256[] the array of layers that will make up the composition
     */
     function compose(uint256[] _tokenIds,  uint256 _imageHash) public payable whenNotPaused {
+        require(_tokenIds.length > 1);
         uint256 price = getTotalCompositionPrice(_tokenIds);
         require(msg.sender != address(0) && msg.value >= price);
         require(_tokenIds.length <= MAX_LAYERS);
@@ -95,6 +106,7 @@ contract Composable is ERC721Token, Ownable, PullPayment, Pausable {
             }
             require(ownerOf(compositionLayerId) != address(0));
             asyncSend(ownerOf(compositionLayerId), tokenIdToCompositionPrice[compositionLayerId]);
+            tokenIdToCompositionPrice[compositionLayerId] = tokenIdToCompositionPrice[compositionLayerId].add(tokenIdToCompositionPriceChangeRate[compositionLayerId]);
         }
     
         uint256 newTokenIndex = _getNextTokenId();
@@ -115,7 +127,7 @@ contract Composable is ERC721Token, Ownable, PullPayment, Pausable {
             _setCompositionPrice(newTokenIndex, minCompositionFee);
         }
    
-        CompositionTokenCreated(newTokenIndex, tokenIdToLayers[newTokenIndex], msg.sender);
+        emit CompositionTokenCreated(newTokenIndex, tokenIdToLayers[newTokenIndex], msg.sender);
     }
 
     /**
@@ -174,6 +186,7 @@ contract Composable is ERC721Token, Ownable, PullPayment, Pausable {
     * @param _price uint256 the new composition price
     */
     function setCompositionPrice(uint256 _tokenId, uint256 _price) public onlyOwnerOf(_tokenId) {
+        require(tokenIdToCompPricePermission[_tokenId] == true);
         _setCompositionPrice(_tokenId, _price);
     }
 
@@ -283,7 +296,25 @@ contract Composable is ERC721Token, Ownable, PullPayment, Pausable {
     function _setCompositionPrice(uint256 _tokenId, uint256 _price) private {
         require(_price >= minCompositionFee);
         tokenIdToCompositionPrice[_tokenId] = _price;
-        CompositionPriceChanged(_tokenId, _price, msg.sender);
+        emit CompositionPriceChanged(_tokenId, _price, msg.sender);
+    }
+
+    /**
+    * @dev set composition price increase rate a token
+    * @param _tokenId uint256 token ID
+    * @param _changeRate uint256 composition price change rate
+    */
+    function _setCompositionPriceChangeRate(uint256 _tokenId, uint256 _changeRate) private {
+        tokenIdToCompositionPriceChangeRate[_tokenId] = _changeRate;
+    }
+
+    /**
+    * @dev set permission to change comp price in the future
+    * @param _tokenId uint256 token ID
+    * @param _canChange bool whether or not the composition price can be manually changed
+    */
+    function _setCompositionPriceChangePermission(uint256 _tokenId, bool _canChange) private {
+        tokenIdToCompPricePermission[_tokenId] = _canChange;
     }
 
     /**
@@ -313,14 +344,14 @@ contract Composable is ERC721Token, Ownable, PullPayment, Pausable {
     */
     function payout (address _to) public onlyOwner { 
         totalPayments = 0;
-        _to.transfer(this.balance);
+        address(_to).transfer(address(this).balance);
     }
 
     /**
     * @dev sets global default composition fee for all new tokens
     * @param _price uint256 new default composition price
     */
-    function setGlobalCompositionFee(uint256 _price) public onlyOwner { 
+    function setMinCompositionFee(uint256 _price) public onlyOwner { 
         minCompositionFee = _price;
     }
 }
