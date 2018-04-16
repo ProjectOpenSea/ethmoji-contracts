@@ -46,6 +46,9 @@ contract Composable is ERC721Token, Ownable, PullPayment, Pausable {
     // Event for emitting composition price changing for a token
     event CompositionPriceChanged(uint256 tokenId, uint256 price, address indexed owner);
 
+    // Event for emitting composition price changing for a token
+    event RoyaltiesPaid(uint256 tokenId, uint256 amount, address indexed owner);
+
     // Whether or not this contract accepts making compositions with other compositions
     bool public isCompositionOnlyWithBaseLayers;
     
@@ -106,6 +109,7 @@ contract Composable is ERC721Token, Ownable, PullPayment, Pausable {
             }
             require(ownerOf(compositionLayerId) != address(0));
             asyncSend(ownerOf(compositionLayerId), tokenIdToCompositionPrice[compositionLayerId]);
+            emit RoyaltiesPaid(compositionLayerId, tokenIdToCompositionPrice[compositionLayerId], ownerOf(compositionLayerId));
             tokenIdToCompositionPrice[compositionLayerId] = tokenIdToCompositionPrice[compositionLayerId].add(tokenIdToCompositionPriceChangeRate[compositionLayerId]);
         }
     

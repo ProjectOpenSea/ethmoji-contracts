@@ -12,9 +12,6 @@ contract Ethmoji is Composable {
 
     // set proxy as the owner
     bool internal _initialized;
-    
-    // Event for emitting composition price changing for a token
-    event RoyaltiesPaid(uint256 tokenId, uint256 amount, address indexed owner);
 
     string public constant NAME = "Ethmoji";
     string public constant SYMBOL = "EMJ";
@@ -36,7 +33,7 @@ contract Ethmoji is Composable {
 
         // Immediately pay out to layer owners
         for (uint256 i = 0; i < _tokenIds.length; i++) {
-            _withdrawTo(_tokenIds[i], ownerOf(_tokenIds[i]));
+            _withdrawTo(ownerOf(_tokenIds[i]));
         }
     }
 
@@ -62,16 +59,14 @@ contract Ethmoji is Composable {
 
     /**
     * @dev withdraw accumulated balance to the payee
-    * @param _tokenId ethmoji that made its owner the profits
     * @param _payee address to which to withdraw to
     */
-    function _withdrawTo(uint256 _tokenId, address _payee) private {
+    function _withdrawTo(address _payee) private {
         uint256 payment = payments[_payee];
 
         if (payment != 0 && address(this).balance >= payment) {
             totalPayments = totalPayments.sub(payment);
             payments[_payee] = 0;
-            emit RoyaltiesPaid(_tokenId, payment, _payee);
             _payee.transfer(payment);
         }
     }

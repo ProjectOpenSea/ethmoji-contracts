@@ -182,7 +182,7 @@
         mintingPrice = await contractInstance.getTotalCompositionPrice([1, 2, 3])
   
         let tx = await contractInstance.compose([1, 2], imageHash, { from: owner, value: mintingPrice, gasPrice: 0 }) // mints token 11
-        let tokenId = tx.logs[0].args._tokenId
+        let tokenId = tx.logs.filter(t => t.event == 'Transfer')[0].args._tokenId
         tokenId.should.bignumber.be.equal(11)
   
         mintingPrice = await contractInstance.getTotalCompositionPrice([1, 2, 3])
@@ -248,19 +248,38 @@
         isUnique = await contractInstance.isValidComposition([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], imageHashTwo)
         isUnique.should.be.equal(false)
   
-        tx.logs[0].event.should.be.equal('Transfer')
-        tx.logs[1].event.should.be.equal('CompositionTokenCreated')
+        tx.logs[0].event.should.be.equal('RoyaltiesPaid')
+        tx.logs[1].event.should.be.equal('RoyaltiesPaid')
         tx.logs[2].event.should.be.equal('RoyaltiesPaid')
+        tx.logs[3].event.should.be.equal('RoyaltiesPaid')
+        tx.logs[4].event.should.be.equal('RoyaltiesPaid')
+        tx.logs[5].event.should.be.equal('RoyaltiesPaid')
+        tx.logs[6].event.should.be.equal('RoyaltiesPaid')
+        tx.logs[7].event.should.be.equal('RoyaltiesPaid')
+        tx.logs[8].event.should.be.equal('RoyaltiesPaid')
+        tx.logs[9].event.should.be.equal('RoyaltiesPaid')
+        tx.logs[10].event.should.be.equal('Transfer')
+        tx.logs[11].event.should.be.equal('CompositionTokenCreated')
       })
   
       it('caller overpays and gets the excess back', async function () {
         let balanceBeforeTransaction = web3.eth.getBalance(purchaser)
         let price = new BigNumber(web3.toWei(10, "ether"))
         tx = await contractInstance.compose([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], imageHash, { from: purchaser, value: price, gasPrice: 0 })
-        tx.logs[0].event.should.be.equal('Transfer')
-        tx.logs[1].event.should.be.equal('CompositionTokenCreated')
-        tx.logs[2].event.should.be.equal('RoyaltiesPaid')
         
+        tx.logs[0].event.should.be.equal('RoyaltiesPaid')
+        tx.logs[1].event.should.be.equal('RoyaltiesPaid')
+        tx.logs[2].event.should.be.equal('RoyaltiesPaid')
+        tx.logs[3].event.should.be.equal('RoyaltiesPaid')
+        tx.logs[4].event.should.be.equal('RoyaltiesPaid')
+        tx.logs[5].event.should.be.equal('RoyaltiesPaid')
+        tx.logs[6].event.should.be.equal('RoyaltiesPaid')
+        tx.logs[7].event.should.be.equal('RoyaltiesPaid')
+        tx.logs[8].event.should.be.equal('RoyaltiesPaid')
+        tx.logs[9].event.should.be.equal('RoyaltiesPaid')
+        tx.logs[10].event.should.be.equal('Transfer')
+        tx.logs[11].event.should.be.equal('CompositionTokenCreated')
+
         let balanceAfterTransaction = web3.eth.getBalance(purchaser)
         
         balanceAfterTransaction.should.bignumber.be.equal(balanceBeforeTransaction.minus(mintingPrice))
@@ -279,13 +298,13 @@
       it('has correct id', async function () { 
         tx = await contractInstance.compose([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], imageHash, { from: owner, value: mintingPrice, gasPrice: 0 })
   
-        let tokenId = tx.logs[0].args._tokenId
+        let tokenId = tx.logs.filter(t => t.event == 'Transfer')[0].args._tokenId
         tokenId.should.bignumber.be.equal(11)
       })
   
       it('has correct layers when using base emojis', async function () { 
         tx = await contractInstance.compose([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], imageHash, { from: owner, value: mintingPrice, gasPrice: 0 })
-        let tokenId = tx.logs[0].args._tokenId
+        let tokenId = tx.logs.filter(t => t.event == 'Transfer')[0].args._tokenId
         tokenId.should.be.bignumber.be.equal(11)
   
         let layers = await contractInstance.getTokenLayers(tokenId)
@@ -304,7 +323,7 @@
   
       it('throws when using composition emoji and base emojis', async function () { 
         tx = await contractInstance.compose([1, 2], imageHash, { from: owner, value: mintingPrice, gasPrice: 0}) //token 11
-        let tokenId = tx.logs[0].args._tokenId
+        let tokenId = tx.logs.filter(t => t.event == 'Transfer')[0].args._tokenId
         tokenId.should.bignumber.be.equal(11)
   
         await expectThrow(contractInstance.compose([11, 3], imageHashTwo, { from: owner, value: mintingPrice, gasPrice: 0}))
@@ -312,11 +331,11 @@
   
       it('throws when using two composition emojis', async function () { 
         tx = await contractInstance.compose([1, 2], imageHash, { from: owner, value: mintingPrice, gasPrice: 0}) //token 11
-        let tokenId = tx.logs[0].args._tokenId
+        let tokenId = tx.logs.filter(t => t.event == 'Transfer')[0].args._tokenId
         tokenId.should.bignumber.be.equal(11)
   
         tx = await contractInstance.compose([3, 4], imageHashTwo, { from: owner, value: mintingPrice, gasPrice: 0}) //token 12
-        tokenId = tx.logs[0].args._tokenId
+        tokenId = tx.logs[2].args._tokenId
         tokenId.should.bignumber.be.equal(12)
   
         await expectThrow(contractInstance.compose([11, 12], imageHashThree, { from: owner, value: mintingPrice, gasPrice: 0}))
@@ -324,7 +343,7 @@
   
       it('throws when trying to make a composite emoji with duplicate', async function () { 
         tx = await contractInstance.compose([1, 2], imageHash, { from: owner, value: mintingPrice, gasPrice: 0}) //token 11
-        let tokenId = tx.logs[0].args._tokenId
+        let tokenId = tx.logs.filter(t => t.event == 'Transfer')[0].args._tokenId
         tokenId.should.bignumber.be.equal(11)
   
         await expectThrow(contractInstance.compose([1, 2], imageHash, { from: owner, value: mintingPrice, gasPrice: 0})) //token 11

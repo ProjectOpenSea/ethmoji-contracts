@@ -7,6 +7,12 @@ Smart contracts for Ethmoji — composable art on the blockchain.
 Install packages
 
 ```
+truffle
+```
+
+Make sure you have truffle version v4.1.5 (core: 4.1.5) or higher with Solidity v0.4.21 (solc-js) or higher
+
+```
 yarn
 ```
 
