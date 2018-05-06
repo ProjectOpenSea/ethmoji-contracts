@@ -37,6 +37,9 @@ contract Composable is ERC721Token, Ownable, PullPayment, Pausable {
     // Image hashes to track uniquenes of ethmoji images.
     mapping (uint256 => uint256) public imageHashes;
 
+    // Reverse mapping of token ID to image hash.
+    mapping (uint256 => uint256) public tokenIdToImageHash;
+
     // Event for emitting new base token created 
     event BaseTokenCreated(uint256 tokenId);
     
@@ -68,7 +71,8 @@ contract Composable is ERC721Token, Ownable, PullPayment, Pausable {
         tokenIdToLayers[newTokenIndex] = [newTokenIndex];
         require(_isUnique(tokenIdToLayers[newTokenIndex], _imageHash));
         compositions[keccak256([newTokenIndex])] = true;
-        imageHashes[_imageHash] = newTokenIndex;      
+        imageHashes[_imageHash] = newTokenIndex;
+        tokenIdToImageHash[newTokenIndex] = _imageHash; 
         emit BaseTokenCreated(newTokenIndex);
         _setCompositionPrice(newTokenIndex, _compositionPrice);
         _setCompositionPriceChangeRate(newTokenIndex, _changeRate);
@@ -119,6 +123,7 @@ contract Composable is ERC721Token, Ownable, PullPayment, Pausable {
         require(_isUnique(tokenIdToLayers[newTokenIndex], _imageHash));
         compositions[keccak256(tokenIdToLayers[newTokenIndex])] = true;
         imageHashes[_imageHash] = newTokenIndex;
+        tokenIdToImageHash[newTokenIndex] = _imageHash;
     
         _mint(msg.sender, newTokenIndex);
 

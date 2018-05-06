@@ -30,7 +30,7 @@
     "truffle": "4.0.1",
     "truffle-hdwallet-provider": "^0.0.3",
     "web3": "0.20.1",
-    "zeppelin-solidity": "1.6.0"
+    "zeppelin-solidity": "^1.8.0"
   },
   "homepage": "https://ethmoji.io"
 }
