@@ -15,6 +15,8 @@ contract Ethmoji is Composable {
 
     string public constant NAME = "Ethmoji";
     string public constant SYMBOL = "EMJ";
+
+    function Ethmoji() ERC721Token("Ethmoji", "EMJ") public { }
     
     function initialize(address newOwner) public {
         require(!_initialized);
@@ -35,24 +37,6 @@ contract Ethmoji is Composable {
         for (uint256 i = 0; i < _tokenIds.length; i++) {
             _withdrawTo(ownerOf(_tokenIds[i]));
         }
-    }
-
-// ----- EXPOSED METHODS --------------------------------------------------------------------------
-
-    /**
-    * @dev returns the name ETHMOJI
-    * @return string ETHMOJI
-    */
-    function name() public pure returns (string) {
-        return NAME;
-    }
-
-    /**
-    * @dev returns the name EMJ
-    * @return string EMJ
-    */
-    function symbol() public pure returns (string) {
-        return SYMBOL;
     }
 
 // ----- PRIVATE FUNCTIONS ------------------------------------------------------------------------
